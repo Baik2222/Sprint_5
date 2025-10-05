@@ -1,49 +1,33 @@
-from locators import *
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from constants.site import BASE_URL
-from constants.auth import TEST_EMAIL, TEST_PASSWORD
+from constants.auth import AUTH_TEST_EMAIL, AUTH_TEST_PASSWORD, TEST_EMAIL, TEST_PASSWORD
+from helpers import go_to_login_page, fill_login_form
+from locators import *
 
 
-def login(driver, email, password):
-    driver.get(BASE_URL)
+class TestProfile:
+    def login(self, driver, email, password):
+        go_to_login_page(driver, way="main")
 
-    driver.find_element(*MAIN_LOGIN_BUTTON).click()
-    driver.find_element(*LOGIN_EMAIL_INPUT).send_keys(email)
-    driver.find_element(*LOGIN_PASSWORD_INPUT).send_keys(password)
+        fill_login_form(driver, email, password)
+        WebDriverWait(driver, 5).until(EC.visibility_of_element_located(HEADER_PROFILE_BUTTON))
 
-    driver.find_element(*LOGIN_SUBMIT_BUTTON).click()
-    WebDriverWait(driver, 5).until(EC.presence_of_element_located(HEADER_PROFILE_BUTTON))
+    def test_go_to_profile(self, browser):
+        self.login(browser, TEST_EMAIL, TEST_PASSWORD)
 
+        browser.find_element(*HEADER_PROFILE_BUTTON).click()
+        WebDriverWait(browser, 5).until(EC.visibility_of_element_located(PROFILE_SECTION))
 
+        assert browser.find_element(*PROFILE_SECTION).is_displayed()
 
-def test_go_to_profile(browser):
-    login(browser, TEST_EMAIL, TEST_PASSWORD)
+    def test_logout(self, browser):
+        self.login(browser, AUTH_TEST_EMAIL, AUTH_TEST_PASSWORD)
 
-    browser.find_element(*HEADER_PROFILE_BUTTON).click()
-    WebDriverWait(browser, 5).until(EC.presence_of_element_located(PROFILE_SECTION))
+        browser.find_element(*HEADER_PROFILE_BUTTON).click()
+        WebDriverWait(browser, 10).until(EC.element_to_be_clickable(PROFILE_LOGOUT_BUTTON))
 
-    assert browser.find_element(*PROFILE_SECTION)
+        browser.find_element(*PROFILE_LOGOUT_BUTTON).click()
+        WebDriverWait(browser, 5).until(EC.visibility_of_element_located(LOGIN_SUBMIT_BUTTON))
 
-
-def test_logout(browser):
-    browser.get(BASE_URL)
-    exists_test_mail = "mymail@yandex.ru"
-    exists_test_password = "Strong123"
-
-    browser.find_element(*HEADER_PROFILE_BUTTON).click()
-    WebDriverWait(browser, 5).until(EC.visibility_of_element_located(LOGIN_EMAIL_INPUT))
-
-    browser.find_element(*LOGIN_EMAIL_INPUT).send_keys(exists_test_mail)
-    browser.find_element(*LOGIN_PASSWORD_INPUT).send_keys(exists_test_password)
-    browser.find_element(*LOGIN_SUBMIT_BUTTON).click()
-    WebDriverWait(browser, 5).until(EC.presence_of_element_located(HEADER_PROFILE_BUTTON))
-
-    browser.find_element(*HEADER_PROFILE_BUTTON).click()
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable(PROFILE_LOGOUT_BUTTON))
-
-    browser.find_element(*PROFILE_LOGOUT_BUTTON).click()
-    WebDriverWait(browser, 5).until(EC.presence_of_element_located(LOGIN_SUBMIT_BUTTON))
-
-    assert "login" in browser.current_url or browser.find_element(*LOGIN_SUBMIT_BUTTON)
+        assert browser.find_element(*LOGIN_SUBMIT_BUTTON).is_displayed()

@@ -1,29 +1,22 @@
+import pytest
 from locators import *
-
 from constants.site import BASE_URL
 
 
-def test_constructor_tab_click_by_fillings(browser):
-    browser.get(BASE_URL)
+class TestConstructorTabs:
+    @pytest.mark.parametrize(
+        "tab_locator, header_xpath, expected, is_default_tab",
+        [
+            (CONSTRUCTOR_TAB_FILLINGS, CONSTRUCTOR_TAB_FILLINGS[1], "Начинки", False),
+            (CONSTRUCTOR_TAB_SAUCES, CONSTRUCTOR_TAB_SAUCES[1], "Соусы", False),
+            (CONSTRUCTOR_TAB_BUNS, CONSTRUCTOR_TAB_BUNS[1], "Булки", True),
+        ]
+    )
+    def test_tab_switch(self, browser, tab_locator, header_xpath, expected, is_default_tab):
+        browser.get(BASE_URL)
 
-    browser.find_element(*CONSTRUCTOR_TAB_FILLINGS).click()
-    fillings_header = browser.find_element(By.XPATH, '//h2[contains(text(), "Начинки")]')
+        if not is_default_tab:
+            browser.find_element(*tab_locator).click()
+        header = browser.find_element(By.XPATH, header_xpath)
 
-    assert "Начинки" in fillings_header.text
-
-
-def test_constructor_tab_click_by_sauces(browser):
-    browser.get(BASE_URL)
-
-    browser.find_element(*CONSTRUCTOR_TAB_SAUCES).click()
-    sauces_header = browser.find_element(By.XPATH, '//h2[contains(text(), "Соусы")]')
-
-    assert "Соусы" in sauces_header.text
-
-
-def test_constructor_tab_click_by_buns(browser):
-    browser.get(BASE_URL)
-
-    buns_header = browser.find_element(By.XPATH, '//h2[contains(text(), "Булки")]')
-
-    assert "Булки" in buns_header.text
+        assert expected in header.text
